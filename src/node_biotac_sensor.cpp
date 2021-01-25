@@ -29,6 +29,7 @@
 #include <Eigen/Dense>
 #include "sensor_process.h"
 #include <biotac_ros/fingerMsg.h>
+#include <biotac_ros/nnmoled.h>
 
 
 class BiotacRosMaster 
@@ -53,7 +54,9 @@ class BiotacRosMaster
         //TODO make plotting more clean and like a function that receives input from contrl unit
         _plotPublisher = _n.advertise<std_msgs::Float64MultiArray>("/hand/plotvar",1);
 
-        _fingertipPublisher = _n.advertise<biotac_ros::fingerMsg>("/biotac/fingertip1",1);
+        _fingertipPublisher = _n.advertise<biotac_ros::fingerMsg>("/biotac/fingertip",1);
+
+        _nnclient = n.serviceClient<biotac_ros::nnmodel>("normal_prediction");
         //todo condition here
         return true;
     }
@@ -71,6 +74,13 @@ class BiotacRosMaster
                 _fingerMsg.header.stamp = ros::Time::now();
                 for (size_t i = 0; i < 3; i++)
                 {
+                    Eigen::VectorXd electrodes = _bioTac->getElec(1);
+                    for (size_t k = 0; k < electrodes.size(); k++){
+                       _normalSrv.input[k] = electrodes(k);
+                    }
+                    if (_nnclient.call(_normalSrv)){
+                        ROS_INFO("Sum: %lf", _normalSrv.response.output);
+                    }
                     _fingerMsg.contact[i] = _bioTac->getStatus(i);
                     _fingerMsg.Pdc[i] = _bioTac->getPdc(i);
 
@@ -105,9 +115,11 @@ class BiotacRosMaster
     ros::Subscriber _subBioTac;  
     ros::Publisher _plotPublisher;
     ros::Publisher _fingertipPublisher;
+    ros::ServiceClient _nnclient;
 
     std_msgs::Float64MultiArray _plotVar;
     biotac_ros::fingerMsg _fingerMsg;
+    biotac_ros::nnmodel _normalSrv;
     bool _stop;     // Check for CTRL+C
     std::shared_ptr<biotac::BiotacSensor> _bioTac;
 

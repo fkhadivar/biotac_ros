@@ -22,6 +22,11 @@ add_message_files(
   fingerMsg.msg
 )
 
+add_service_files(
+  FILES
+  nnmodel.srv
+)
+
 generate_messages(
    DEPENDENCIES
    std_msgs
