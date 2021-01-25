@@ -1,0 +1,19 @@
+<launch>
+
+
+  <include file="$(find biotac_sp_ros)/biotac.launch">
+  </include>
+
+  <node name="biotac_testing" pkg="biotac_ros" type="biotc_sensor" output="screen">
+  </node>
+
+  <node name="plotter"
+        pkg="rqt_plot"
+        type="rqt_plot"
+        args="/hand/plotvar/data[0] /hand/plotvar/data[1] /hand/plotvar/data[2] /hand/plotvar/data[3] /hand/plotvar/data[4] /hand/plotvar/data[5]
+        /hand/plotvar/data[6] /hand/plotvar/data[7] /hand/plotvar/data[8] /hand/plotvar/data[9] /hand/plotvar/data[10] /hand/plotvar/data[11]
+        /hand/plotvar/data[12] /hand/plotvar/data[13] /hand/plotvar/data[14] /hand/plotvar/data[15] /hand/plotvar/data[16] /hand/plotvar/data[17]
+        /hand/plotvar/data[18]" >
+  </node>
+
+</launch>
