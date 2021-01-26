@@ -29,7 +29,7 @@
 #include <Eigen/Dense>
 #include "sensor_process.h"
 #include <biotac_ros/fingerMsg.h>
-#include <biotac_ros/nnmoled.h>
+#include "biotac_ros/nnmodel.h"
 
 
 class BiotacRosMaster 
@@ -50,14 +50,16 @@ class BiotacRosMaster
         &BiotacRosMaster::updateBioTac,this,ros::TransportHints().reliable().tcpNoDelay());
 
         // plotting
-        _plotVar.data.resize(19);
+        _plotVar.data.resize(3);
         //TODO make plotting more clean and like a function that receives input from contrl unit
         _plotPublisher = _n.advertise<std_msgs::Float64MultiArray>("/hand/plotvar",1);
 
         _fingertipPublisher = _n.advertise<biotac_ros::fingerMsg>("/biotac/fingertip",1);
 
-        _nnclient = n.serviceClient<biotac_ros::nnmodel>("normal_prediction");
+        _nnclient = _n.serviceClient<biotac_ros::nnmodel>("normal_prediction");
         //todo condition here
+        for (size_t i = 0; i < 3; i++)
+            normls.push_back(Eigen::Vector3d::UnitX());
         return true;
     }
     // run node
@@ -67,8 +69,7 @@ class BiotacRosMaster
             if(_bioTac->isOk() ){
 
                 Eigen::VectorXd plotVariable = _bioTac->getElec(1);
-                for (size_t i = 0; i < plotVariable.size(); i++)
-                    _plotVar.data[i] = plotVariable[i];
+                
                 _plotPublisher.publish(_plotVar);
 
                 _fingerMsg.header.stamp = ros::Time::now();
@@ -76,20 +77,35 @@ class BiotacRosMaster
                 {
                     Eigen::VectorXd electrodes = _bioTac->getElec(1);
                     for (size_t k = 0; k < electrodes.size(); k++){
-                       _normalSrv.input[k] = electrodes(k);
+                       _nnModel_srv.request.input[k] = electrodes(k);
                     }
-                    if (_nnclient.call(_normalSrv)){
-                        ROS_INFO("Sum: %lf", _normalSrv.response.output);
+                    
+                    Eigen::Vector3d _normal = Eigen::Vector3d::UnitZ(); 
+                    if (_nnclient.call(_nnModel_srv)){
+                        auto respNormal = _nnModel_srv.response.output;
+                        _normal(0) = respNormal[1];
+                        _normal(1) = respNormal[2];
+                        _normal(2) = respNormal[0];
+                        
                     }
+                    _normal.normalize();
+                    double filtRate = 0.2;
+                    normls[i] = filtRate * _normal + (1-filtRate) * normls[i]; 
+                    if (i==1)
+                    {
+                        std::cout << "normal now is : " << normls[i].transpose() << "\n";
+                        for (size_t j = 0; j < _normal.size(); j++)
+                            _plotVar.data[j] =  normls[i](j); 
+                    }
+                    
                     _fingerMsg.contact[i] = _bioTac->getStatus(i);
                     _fingerMsg.Pdc[i] = _bioTac->getPdc(i);
 
                     Eigen::Vector3d _force = Eigen::Vector3d::Zero();
-                    Eigen::Vector3d _normal = Eigen::Vector3d::Zero(); 
                     for (size_t j = 0; j < 3; j++)
                     {
                     _fingerMsg.Force[3*i+j] =_force[j];
-                    _fingerMsg.nVec[3*i+j] =_normal[j];
+                    _fingerMsg.nVec[3*i+j] =normls[i](j);
                     }
                 }
                 _fingertipPublisher.publish(_fingerMsg);
@@ -119,9 +135,11 @@ class BiotacRosMaster
 
     std_msgs::Float64MultiArray _plotVar;
     biotac_ros::fingerMsg _fingerMsg;
-    biotac_ros::nnmodel _normalSrv;
+    biotac_ros::nnmodel _nnModel_srv;
     bool _stop;     // Check for CTRL+C
     std::shared_ptr<biotac::BiotacSensor> _bioTac;
+
+    std::vector<Eigen::Vector3d> normls;
 
   private:
     void updateBioTac(const std_msgs::String & msg){
