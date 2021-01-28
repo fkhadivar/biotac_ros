@@ -84,8 +84,8 @@ class BiotacRosMaster
                     if (_nnclient.call(_nnModel_srv)){
                         auto respNormal = _nnModel_srv.response.output;
                         _normal(0) = respNormal[1];
-                        _normal(1) = respNormal[2];
-                        _normal(2) = respNormal[0];
+                        _normal(1) = -respNormal[0];
+                        _normal(2) = respNormal[2];
                         
                     }
                     _normal.normalize();
