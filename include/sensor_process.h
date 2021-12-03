@@ -23,6 +23,7 @@
 #include <Eigen/Dense>
 #include <memory>
 #include <iostream>
+#include <vector>
 namespace biotac{
 
     struct fingertip{
