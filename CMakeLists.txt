@@ -47,4 +47,3 @@ add_executable(biotc_sensor src/node_biotac_sensor.cpp src/sensor_process.cpp)
 target_include_directories(biotc_sensor PUBLIC include ${catkin_INCLUDE_DIRS} ${Eigen3_INCLUDE_DIRS})
 target_link_libraries(biotc_sensor ${catkin_LIBRARIES} ${Eigen3_LIBRARIES} )
 add_dependencies(biotc_sensor ${PROJECT_NAME}_gencpp)
-
