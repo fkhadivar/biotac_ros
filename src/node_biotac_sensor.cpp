@@ -52,7 +52,7 @@ class BiotacRosMaster
         // plotting
         _plotVar.data.resize(3);
         //TODO make plotting more clean and like a function that receives input from contrl unit
-        _plotPublisher = _n.advertise<std_msgs::Float64MultiArray>("/hand/plotvar",1);
+        // _plotPublisher = _n.advertise<std_msgs::Float64MultiArray>("/hand/plotvar",1);
 
         _fingertipPublisher = _n.advertise<biotac_ros::fingerMsg>("/biotac/fingertip",1);
 
@@ -70,7 +70,7 @@ class BiotacRosMaster
 
                 Eigen::VectorXd plotVariable = _bioTac->getElec(1);
                 
-                _plotPublisher.publish(_plotVar);
+                // _plotPublisher.publish(_plotVar);
 
                 _fingerMsg.header.stamp = ros::Time::now();
                 for (size_t i = 0; i < 3; i++)
@@ -91,12 +91,12 @@ class BiotacRosMaster
                     _normal.normalize();
                     double filtRate = 0.2;
                     normls[i] = filtRate * _normal + (1-filtRate) * normls[i]; 
-                    if (i==1)
-                    {
-                        std::cout << "normal now is : " << normls[i].transpose() << "\n";
-                        for (size_t j = 0; j < _normal.size(); j++)
-                            _plotVar.data[j] =  normls[i](j); 
-                    }
+                    // if (i==1)
+                    // {
+                    //     // std::cout << "normal now is : " << normls[i].transpose() << "\n";
+                    //     for (size_t j = 0; j < _normal.size(); j++)
+                    //         _plotVar.data[j] =  normls[i](j); 
+                    // }
                     
                     _fingerMsg.contact[i] = _bioTac->getStatus(i);
                     _fingerMsg.Pdc[i] = _bioTac->getPdc(i);
@@ -129,7 +129,7 @@ class BiotacRosMaster
     ros::NodeHandle _n;
     ros::Rate _loopRate;
     ros::Subscriber _subBioTac;  
-    ros::Publisher _plotPublisher;
+    // ros::Publisher _plotPublisher;
     ros::Publisher _fingertipPublisher;
     ros::ServiceClient _nnclient;
 

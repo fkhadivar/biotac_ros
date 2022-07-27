@@ -65,7 +65,7 @@ namespace biotac{
                     fingertips[index].El_offset = fingertips[index].El_offset * 1/(max_count+1);
                 }
             }
-            std::cout << "initializing biotac: "<< counter << std::endl << std::endl;  
+            // std::cout << "initializing biotac: "<< counter << std::endl << std::endl;  
 
         }else{
             _isOk = true;
@@ -80,7 +80,7 @@ namespace biotac{
 
                 fingertips[index].dPdc = 0.2* (data[54*index + 2*24] - fingertips[index].Pdc)/_dt + (1-0.2)*fingertips[index].dPdc;
                 if( fingertips[index].Pdc - fingertips[index].P_offset < 20 )
-                    if(fabs(fingertips[index].dPdc) < 100){
+                    if(fabs(fingertips[index].dPdc) < 75){
                         fingertips[index].P_offset += 0.1* (fingertips[index].Pdc - fingertips[index].P_offset);
                         fingertips[index].El_offset+= 0.1*(_el.segment(0,19) - fingertips[index].El_offset);
                         fingertips[index].contact = false;
@@ -108,7 +108,7 @@ namespace biotac{
         return fingertips[index].El;
     }
     double BiotacSensor::getPdc(const size_t& index){
-        return fingertips[index].Pdc;
+        return fingertips[index].Pdc - fingertips[index].P_offset;
     }
 
     bool BiotacSensor::getStatus(const size_t& index){

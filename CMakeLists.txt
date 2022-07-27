@@ -35,7 +35,7 @@ generate_messages(
 
 catkin_package(
  INCLUDE_DIRS include
- LIBRARIES biotac_ros
+#  LIBRARIES biotac_ros
  CATKIN_DEPENDS roscpp rospy std_msgs geometry_msgs message_generation
 #  DEPENDS system_lib
 )
@@ -47,3 +47,4 @@ add_executable(biotc_sensor src/node_biotac_sensor.cpp src/sensor_process.cpp)
 target_include_directories(biotc_sensor PUBLIC include ${catkin_INCLUDE_DIRS} ${Eigen3_INCLUDE_DIRS})
 target_link_libraries(biotc_sensor ${catkin_LIBRARIES} ${Eigen3_LIBRARIES} )
 add_dependencies(biotc_sensor ${PROJECT_NAME}_gencpp)
+
